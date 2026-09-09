@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Materiais de Obra</title>
+<style>
+  :root{
+    --accent:#e67e22;
+    --accent-dark:#b85c0e;
+    --bg:#f4f0ea;
+    --card:#ffffff;
+    --ink:#2c3e50;
+    --muted:#7f8c8d;
+    --line:#e3ddd3;
+    --ok:#27ae60;
+    --warn:#c0392b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+  header{background:linear-gradient(135deg,#1f2c3a,#2c3e50);color:#fff;padding:18px 26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:1.35rem;display:flex;align-items:center;gap:10px}
+  header p{color:#b8c4cf;font-size:.9rem;margin-top:4px}
+  #userChip{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  #userChip span{color:#fff;font-size:.9rem}
+  #adminLink{color:#ffd9a8;text-decoration:none;font-size:.85rem;border:1px solid #5a6b7a;padding:5px 10px;border-radius:7px}
+  #adminLink:hover{background:rgba(255,255,255,.08)}
+  #btnLogout{background:transparent;color:#e8c39e;border:1px solid #6b5b45;border-radius:7px;padding:5px 12px;font-size:.85rem;cursor:pointer}
+  #btnLogout:hover{background:#c0392b;color:#fff;border-color:#c0392b}
+  main{max-width:1220px;margin:0 auto;padding:22px;display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:960px){main{grid-template-columns:1.05fr .95fr}}
+  section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  section h2{font-size:1.02rem;margin-bottom:14px;color:var(--accent-dark);text-transform:uppercase;letter-spacing:.4px}
+  label{font-size:.82rem;color:var(--muted);display:block;margin-bottom:4px}
+  input[type=number],select,input[type=text]{width:100%;padding:8px 10px;border:1px solid #cfc7ba;border-radius:8px;font-size:.95rem;background:#fff}
+  input:focus,select:focus{outline:2px solid var(--accent)}
+  .grid{display:grid;gap:10px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .room{background:#faf7f2;border:1px dashed var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+  .room .top{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+  .room .top input{flex:1}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:.9rem;cursor:pointer;font-weight:600}
+  .btn:hover{background:var(--accent-dark)}
+  .btn.ghost{background:#eee6da;color:var(--ink)}
+  .btn.ghost:hover{background:#e0d5c5}
+  .btn.sm{padding:4px 10px;font-size:.8rem}
+  .btn.danger{background:#e74c3c}
+  .btn.danger:hover{background:#c0392b}
+  .check{display:flex;align-items:flex-start;gap:8px;font-size:.95rem;color:var(--ink);margin-bottom:10px}
+  .check input{width:18px;height:18px;margin-top:2px}
+  .note{font-size:.8rem;color:var(--muted);background:#f7f2ea;border-left:3px solid var(--accent);padding:8px 10px;border-radius:6px;margin-top:12px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+  @media(max-width:700px){.cards{grid-template-columns:1fr 1fr}}
+  .card{background:#fff8ef;border:1px solid #f0e0c8;border-radius:10px;padding:10px;text-align:center}
+  .card .v{font-size:1.2rem;font-weight:700;color:var(--accent-dark)}
+  .card .t{font-size:.75rem;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.3px}
+  td.price input{width:86px;padding:5px 7px}
+  td.num{text-align:right;white-space:nowrap}
+  .cat{background:#f7f2ea;font-weight:700;color:var(--accent-dark);text-transform:uppercase;font-size:.8rem}
+  .total-row{background:#fff8ef;font-weight:800;font-size:1.02rem}
+  .total-row td{color:var(--accent-dark)}
+  .pill{display:inline-block;background:#eaf6ee;color:var(--ok);border-radius:20px;padding:2px 10px;font-size:.75rem;font-weight:700}
+  .placeholder{color:var(--muted);text-align:center;padding:30px 10px;font-size:.95rem}
+  .sub{font-size:.78rem;color:var(--muted);margin-top:10px}
+  .divider{border-top:1px solid var(--line);margin:14px 0}
+  #exportArea{margin-top:14px}
+  #costTip{font-size:.8rem;color:var(--muted);margin-bottom:10px}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:4px}
+  .table-wrap table{min-width:520px}
+  @media(max-width:760px){
+    input[type=number],input[type=text],select{font-size:16px;min-height:46px}
+    .btn{min-height:46px;font-size:1rem}
+    .g3,.g4{grid-template-columns:repeat(2,1fr)}
+    .check{font-size:1rem}
+    header{padding:14px 16px}
+    main{padding:14px}
+    .btn.sm{min-height:38px}
+    .room .top input{min-height:46px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🧱 Calculadora de Materiais de Obra</h1>
+    <p>Descreva os cômodos e o protótipo estima tijolos, argamassa, reboco, piso, rejunte e mais.</p>
+  </div>
+  <div id="userChip">
+    <span id="userName"></span>
+    <a id="adminLink" href="/admin" style="display:none">Painel admin</a>
+    <a id="ceramLink" href="/ceramica" style="color:#ffd9a8;text-decoration:none;font-size:.85rem;border:1px solid #5a6b7a;padding:5px 10px;border-radius:7px">🧱 Só cerâmica</a>
+    <button id="btnLogout">Sair</button>
+  </div>
+</header>
+<main>
+  <div>
+    <section>
+      <h2>1. Cômodos da obra</h2>
+      <div id="rooms"></div>
+      <button class="btn ghost" id="addRoom">+ Adicionar cômodo</button>
+    </section>
+    <section style="margin-top:20px">
+      <h2>2. Opções de construção</h2>
+      <div class="grid g2">
+        <div>
+          <label>Material da alvenaria (parede)</label>
+          <select id="optBrick">
+            <option value="tijolo_furado">Tijolo furado 9x19x19</option>
+            <option value="tijolo_comum">Tijolo comum 5x10x20</option>
+            <option value="bloco_ceramico">Bloco cerâmico 9x19x39</option>
+            <option value="bloco_concreto">Bloco de concreto 9x19x39</option>
+            <option value="custom">Personalizado (defino as medidas)</option>
+          </select>
+        </div>
+        <div>
+          <label>Margem / desperdício (%)</label>
+          <input type="number" id="optWaste" value="10" min="0" max="40" step="1">
+        </div>
+      </div>
+      <div class="grid g4" id="brickBox" style="margin-top:10px">
+        <div><label>Comprimento (cm)</label><input type="number" id="brickL" value="19" step="0.5" min="2"></div>
+        <div><label>Altura (cm)</label><input type="number" id="brickH" value="19" step="0.5" min="2"></div>
+        <div><label>Espessura (cm)</label><input type="number" id="brickW" value="9" step="0.5" min="2"></div>
+        <div><label>Junta (cm)</label><input type="number" id="brickJ" value="1.0" step="0.1" min="0.3"></div>
+      </div>
+      <div id="brickHint" style="font-size:.8rem;color:var(--ok);margin-top:6px">≈ 25 unidades por m² de parede</div>
+      <div class="divider"></div>
+      <div style="font-size:.82rem;color:var(--accent-dark);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:8px">Aberturas (tamanho das portas e janelas)</div>
+      <div class="grid g4">
+        <div><label>Porta largura (m)</label><input type="number" id="portaW" value="0.80" step="0.05" min="0.5"></div>
+        <div><label>Porta altura (m)</label><input type="number" id="portaH" value="2.10" step="0.05" min="1.5"></div>
+        <div><label>Janela largura (m)</label><input type="number" id="janW" value="1.20" step="0.05" min="0.3"></div>
+        <div><label>Janela altura (m)</label><input type="number" id="janH" value="1.20" step="0.05" min="0.3"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="check"><input type="checkbox" id="optReboco" checked><div><strong>Reboco interno e externo (2 faces)</strong><br><span style="color:var(--muted);font-size:.85rem">espessuras reguláveis abaixo</span></div></div>
+      <div class="grid g2" id="rebocoBox">
+        <div><label>Esp. reboco (cm)</label><input type="number" id="rebEsp" value="2" step="0.5" min="1"></div>
+        <div><label>Esp. chapisco (cm)</label><input type="number" id="chapEsp" value="0.5" step="0.1" min="0.2"></div>
+      </div>
+      <div class="check"><input type="checkbox" id="optChapisco" checked><div><strong>Chapisco (antes do reboco)</strong></div></div>
+      <div class="check"><input type="checkbox" id="optFundacao"><div><strong>Incluir fundação (baldrame)</strong></div></div>
+      <div class="grid g3" id="baldrameBox" style="display:none">
+        <div><label>Largura (m)</label><input type="number" id="baldBase" value="0.20" step="0.05" min="0.10"></div>
+        <div><label>Altura (m)</label><input type="number" id="baldAlt" value="0.30" step="0.05" min="0.10"></div>
+        <div><label>Perímetro</label><input type="number" id="baldPerm" value="0" disabled></div>
+      </div>
+      <div class="check"><input type="checkbox" id="optContrapiso" checked><div><strong>Contrapiso (regularização do piso)</strong></div></div>
+      <div class="grid g4" id="pisoBox">
+        <div><label>Esp. contrapiso (cm)</label><input type="number" id="contraEsp" value="5" step="1" min="2"></div>
+        <div><label>Cerâmica (cm)</label><input type="number" id="pisoL" value="45" step="1" min="5"></div>
+        <div><label>Jnt. rejunte (mm)</label><input type="number" id="pisoJ" value="3" step="1" min="1"></div>
+        <div><label>Esp. peça (mm)</label><input type="number" id="pisoT" value="9" step="1" min="3"></div>
+      </div>
+      <div class="note">Modelo geométrico de consumo (tijolos por m² calculados pelas medidas + junta) com fatores médios de perdas. Estimativa — não substitui projeto/engenharia.</div>
+    </section>
+    <section style="margin-top:20px">
+      <h2>3. Mão de obra — quanto cobrar</h2>
+      <div class="check"><input type="checkbox" id="optLabor" checked><div><strong>Calcular mão de obra</strong><br><span style="color:var(--muted);font-size:.85rem">diárias do pedreiro e serventes</span></div></div>
+      <div id="laborBox">
+        <div style="margin-bottom:12px">
+          <label>Como calcular o valor?</label>
+          <div class="check" style="margin:6px 0"><input type="radio" name="laborMethod" id="metDiaria" value="diaria" checked><div><strong>Por diária</strong> — estimo o nº de dias pelo rendimento da equipe</div></div>
+          <div class="check" style="margin:6px 0"><input type="radio" name="laborMethod" id="metM2" value="m2"><div><strong>Por empreitada</strong> — preço fixo por m² de cada serviço</div></div>
+        </div>
+        <div class="grid g3">
+          <div><label>Diária do pedreiro (R$)</label><input type="number" id="diarPed" value="150" step="10" min="0"></div>
+          <div><label>Diária do servente (R$)</label><input type="number" id="diarServ" value="80" step="10" min="0"></div>
+          <div><label>Nº de serventes</label><input type="number" id="nServ" value="1" step="1" min="0" max="10"></div>
+        </div>
+        <div id="prodBox" class="grid g4" style="margin-top:12px">
+          <div><label>Alvenaria (m²/dia)</label><input type="number" id="prodAlv" value="12" step="1" min="1"></div>
+          <div><label>Reboco (m²/dia)</label><input type="number" id="prodReb" value="18" step="1" min="1"></div>
+          <div><label>Chapisco (m²/dia)</label><input type="number" id="prodChap" value="35" step="1" min="1"></div>
+          <div><label>Piso / cerâmica (m²/dia)</label><input type="number" id="prodPiso" value="10" step="1" min="1"></div>
+          <div><label>Contrapiso (m²/dia)</label><input type="number" id="prodContra" value="20" step="1" min="1"></div>
+          <div><label>Baldrame (m/dia)</label><input type="number" id="prodBald" value="15" step="1" min="1"></div>
+          <div><label>Dias extras / imprevistos</label><input type="number" id="extraDias" value="0" step="1" min="0"></div>
+        </div>
+        <div id="m2Box" class="grid g4" style="margin-top:12px;display:none">
+          <div><label>Alvenaria (R$/m²)</label><input type="number" id="pxAlv" value="35" step="1" min="0"></div>
+          <div><label>Reboco (R$/m²)</label><input type="number" id="pxReb" value="20" step="1" min="0"></div>
+          <div><label>Chapisco (R$/m²)</label><input type="number" id="pxChap" value="6" step="1" min="0"></div>
+          <div><label>Piso / cerâmica (R$/m²)</label><input type="number" id="pxPiso" value="28" step="1" min="0"></div>
+          <div><label>Contrapiso (R$/m²)</label><input type="number" id="pxContra" value="12" step="1" min="0"></div>
+          <div><label>Baldrame (R$/m)</label><input type="number" id="pxBald" value="25" step="1" min="0"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>Resultado</h2>
+      <div class="cards" id="cards">
+        <div class="card"><div class="v" id="sParede">–</div><div class="t">Área de parede</div></div>
+        <div class="card"><div class="v" id="sPiso">–</div><div class="t">Área de piso</div></div>
+        <div class="card"><div class="v" id="sReboco">–</div><div class="t">Área rebocada</div></div>
+        <div class="card"><div class="v" id="sDias">–</div><div class="t">Dias de serviço</div></div>
+        <div class="card"><div class="v" id="sMao">–</div><div class="t">Mão de obra</div></div>
+        <div class="card"><div class="v" id="sTotal">R$ –</div><div class="t">Total geral (mat + mão)</div></div>
+      </div>
+      <div id="costTip">Edite os preços abaixo para ajustar o custo real da sua região.</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Material</th><th>Qtd.</th><th>Unid.</th><th>Preço</th><th>Subtotal</th></tr></thead>
+        <tbody id="resBody"></tbody>
+      </table></div>
+      <div class="divider"></div>
+      <div style="font-size:.82rem;color:var(--accent-dark);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:8px">Mão de obra — detalhamento</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Serviço</th><th>Qtd</th><th>Dias</th><th>Valor</th></tr></thead>
+        <tbody id="laborBody"></tbody>
+      </table></div>
+      <div class="divider"></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Cômodo</th><th>Parede (m²)</th><th>Bruto (m²)</th></tr></thead>
+        <tbody id="resRooms"></tbody>
+      </table></div>
+      <div id="exportArea">
+        <button class="btn" id="btnCopy">📋 Copiar resumo</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+/* __PURE_CALC__ */
+function calcularMateriais(p){
+  const L=Math.max(1,p.brickL)/100, H=Math.max(1,p.brickH)/100, W=Math.max(1,p.brickW)/100, j=Math.max(0.3,p.brickJ)/100;
+  const cell=(L+j)*(H+j);
+  const unM2=cell>0?1/cell:0;
+  const assenteM2=unM2*j*W*(L+H)*2.5;
+  let parede=0, perimetro=0, piso=0;
+  const perRoom=[];
+  for(const r of p.rooms){
+    const P=2*(r.L+r.W);
+    const gross=P*r.H;
+    const abe=r.portas*(p.portaW||0.8)*(p.portaH||2.1)+r.janelas*(p.janW||1.2)*(p.janH||1.2);
+    const net=Math.max(0,gross-abe);
+    parede+=net; perimetro+=P; piso+=r.L*r.W;
+    perRoom.push({nome:r.nome,gross:+gross.toFixed(2),net:+net.toFixed(2)});
+  }
+  const argAssent=parede*assenteM2;
+  const rebocoArea=p.reboco?parede*2:0;
+  const argReboco=rebocoArea*(Math.max(0.5,p.rebEsp)/100);
+  const chapArea=p.chapisco?parede*2:0;
+  const argChap=chapArea*(Math.max(0.1,p.chapEsp)/100);
+  const volBaldrame=p.fundacao?perimetro*p.baldBase*p.baldAlt:0;
+  const volContra=p.contrapiso?piso*p.contraEsp/100:0;
+  let cim=0, are=0, bri=0, cals=0;
+  function mix(v,c,a,br,cl){cim+=v*c;are+=v*a;bri+=v*br;cals+=v*cl;}
+  mix(argAssent,150,1.0,0,100);
+  mix(argReboco,150,1.0,0,100);
+  mix(argChap,250,1.0,0,0);
+  mix(volBaldrame,350,0.6,0.85,0);
+  mix(volContra,250,0.65,0.9,0);
+  const pisoL=Math.max(1,p.pisoL);
+  const nTiles=10000/(pisoL*pisoL);
+  const jLen=nTiles*4*pisoL;
+  const volRej=jLen*(p.pisoJ/10)*(p.pisoT/10)*1.45/1000*piso;
+  const argColante=piso*5;
+  const w=1+p.waste/100;
+  const raw={tijolo:parede*unM2,cimento:cim/50,cal:cals/20,areia:are,brita:bri,ceramica:piso,argamassa:argColante/20,reajunte:volRej};
+  const qty={};
+  for(const k in raw) qty[k]=Math.ceil(raw[k]*w*100)/100;
+  return {qty,resumo:{parede:+parede.toFixed(2),piso:+piso.toFixed(2),reboco:+rebocoArea.toFixed(2),cim:+cim.toFixed(2),are:+are.toFixed(2),bri:+bri.toFixed(2),perimetro:+perimetro.toFixed(2),perRoom,volBaldrame:+volBaldrame.toFixed(3),volContra:+volContra.toFixed(3)}};
+}
+function calcularMaoDeObra(p,r){
+  if(!p.labor||!p.labor.enabled) return {enabled:false,total:0,dias:0,rows:[],costDay:0,method:'diaria'};
+  const lab=p.labor;
+  const tasks=[
+    {k:'alv',nome:'Alvenaria (levantar paredes)',qtd:r.parede,uni:'m²'},
+    {k:'chap',nome:'Chapisco',qtd:r.reboco,uni:'m²'},
+    {k:'reb',nome:'Reboco',qtd:r.reboco,uni:'m²'},
+    {k:'contra',nome:'Contrapiso',qtd:r.piso,uni:'m²'},
+    {k:'piso',nome:'Assentar cerâmica/piso',qtd:r.piso,uni:'m²'}
+  ];
+  if(r.volBaldrame>0) tasks.push({k:'bald',nome:'Fundação (baldrame)',qtd:r.perimetro,uni:'m'});
+  const costDay=lab.pedreiro+lab.serventes*lab.servente;
+  const rows=[];
+  let diasTotal=0, valorTotal=0;
+  for(const t of tasks){
+    if(t.qtd<=0) continue;
+    if(lab.method==='diaria'){
+      const prod=lab.prod[t.k]||1;
+      const dias=t.qtd/prod;
+      diasTotal+=dias;
+      rows.push({nome:t.nome,qtd:t.qtd,uni:t.uni,dias:+dias.toFixed(1),valor:+ (dias*costDay).toFixed(2)});
+    }else{
+      const v=t.qtd*(lab.prices[t.k]||0);
+      valorTotal+=v;
+      rows.push({nome:t.nome,qtd:t.qtd,uni:t.uni,dias:null,valor:+v.toFixed(2)});
+    }
+  }
+  if(lab.method==='diaria'){
+    diasTotal+=lab.extraDias||0;
+    valorTotal=diasTotal*costDay;
+  }
+  return {enabled:true,total:+valorTotal.toFixed(2),dias:+diasTotal.toFixed(1),rows,costDay,method:lab.method};
+}
+/* __END__ */
+</script>
+
+<script>
+const BRICK_PRESETS={
+  tijolo_furado:{L:19,H:19,W:9},
+  tijolo_comum:{L:20,H:10,W:10},
+  bloco_ceramico:{L:39,H:19,W:9},
+  bloco_concreto:{L:39,H:19,W:9},
+  custom:{L:19,H:19,W:9}
+};
+const BRICK_LABELS={
+  tijolo_furado:{label:'Tijolo furado 9x19x19'},
+  tijolo_comum:{label:'Tijolo comum 5x10x20'},
+  bloco_ceramico:{label:'Bloco cerâmico 9x19x39'},
+  bloco_concreto:{label:'Bloco de concreto 9x19x39'},
+  custom:{label:'Tijolo personalizado'}
+};
+const DEFAULT_PRICES={
+  tijolo:1.60, cimento:36.00, cal:15.00, areia:160.00, brita:155.00,
+  ceramica:45.00, argamassa:28.00, reajunte:9.00
+};
+let prices={...DEFAULT_PRICES};
+let roomCount=0;
+const $=id=>document.getElementById(id);
+
+function roomCard(nome,L,W,H,portas,janelas){
+  const id=++roomCount;
+  const el=document.createElement('div');
+  el.className='room';
+  el.innerHTML=`
+    <div class="top">
+      <input type="text" value="${nome}" placeholder="Nome do cômodo">
+      <button class="btn danger sm rm">✕</button>
+    </div>
+    <div class="grid g4">
+      <div><label>Largura (m)</label><input type="number" class="L" value="${L}" step="0.05" min="0.5"></div>
+      <div><label>Comprimento (m)</label><input type="number" class="W" value="${W}" step="0.05" min="0.5"></div>
+      <div><label>Pé direito (m)</label><input type="number" class="H" value="${H}" step="0.05" min="2"></div>
+      <div><label>Altura (m) da parede</label><input type="number" class="H2" value="${H}" step="0.05" min="2" style="display:none"></div>
+    </div>
+    <div class="grid g2" style="margin-top:10px">
+      <div><label>Portas (un)</label><input type="number" class="portas" value="${portas}" min="0" max="10"></div>
+      <div><label>Janelas (un)</label><input type="number" class="janelas" value="${janelas}" min="0" max="10"></div>
+    </div>`;
+  el.querySelector('.rm').addEventListener('click',()=>{el.remove();recalc();});
+  el.querySelectorAll('input').forEach(i=>i.addEventListener('input',recalc));
+  return el;
+}
+
+function readState(){
+  const rooms=[];
+  document.querySelectorAll('.room').forEach(el=>{
+    const g=i=>{const v=parseFloat(el.querySelector(i).value);return isNaN(v)?0:v;};
+    rooms.push({
+      nome:el.querySelector('.top input').value||'Cômodo',
+      L:g('.L'), W:g('.W'), H:g('.H'),
+      portas:g('.portas'), janelas:g('.janelas')
+    });
+  });
+  document.querySelectorAll('#resBody input').forEach(i=>{const k=i.dataset.key;if(k&&prices[k]!==undefined)prices[k]=parseFloat(i.value)||0;});
+  return {
+    rooms,
+    brick:$('optBrick').value,
+    brickL:parseFloat($('brickL').value)||19,
+    brickH:parseFloat($('brickH').value)||19,
+    brickW:parseFloat($('brickW').value)||9,
+    brickJ:parseFloat($('brickJ').value)||1,
+    portaW:parseFloat($('portaW').value)||0.8,
+    portaH:parseFloat($('portaH').value)||2.1,
+    janW:parseFloat($('janW').value)||1.2,
+    janH:parseFloat($('janH').value)||1.2,
+    rebEsp:parseFloat($('rebEsp').value)||2,
+    chapEsp:parseFloat($('chapEsp').value)||0.5,
+    waste:parseFloat($('optWaste').value)||0,
+    reboco:$('optReboco').checked,
+    chapisco:$('optChapisco').checked,
+    fundacao:$('optFundacao').checked,
+    contrapiso:$('optContrapiso').checked,
+    baldBase:parseFloat($('baldBase').value)||0.2,
+    baldAlt:parseFloat($('baldAlt').value)||0.3,
+    contraEsp:parseFloat($('contraEsp').value)||5,
+    pisoL:parseFloat($('pisoL').value)||45,
+    pisoJ:parseFloat($('pisoJ').value)||3,
+    pisoT:parseFloat($('pisoT').value)||9,
+    labor:{
+      enabled:$('optLabor').checked,
+      method:$('metM2').checked?'m2':'diaria',
+      pedreiro:parseFloat($('diarPed').value)||0,
+      servente:parseFloat($('diarServ').value)||0,
+      serventes:parseFloat($('nServ').value)||0,
+      prod:{alv:parseFloat($('prodAlv').value)||1,reb:parseFloat($('prodReb').value)||1,chap:parseFloat($('prodChap').value)||1,piso:parseFloat($('prodPiso').value)||1,contra:parseFloat($('prodContra').value)||1,bald:parseFloat($('prodBald').value)||1},
+      prices:{alv:parseFloat($('pxAlv').value)||0,reb:parseFloat($('pxReb').value)||0,chap:parseFloat($('pxChap').value)||0,piso:parseFloat($('pxPiso').value)||0,contra:parseFloat($('pxContra').value)||0,bald:parseFloat($('pxBald').value)||0},
+      extraDias:parseFloat($('extraDias').value)||0
+    }
+  };
+}
+
+const MAT={tijolo:{u:'un',l:''},cimento:{u:'sacos',l:'Cimento 50 kg'},cal:{u:'sacos',l:'Cal 20 kg'},areia:{u:'m³',l:'Areia'},brita:{u:'m³',l:'Brita'},ceramica:{u:'m²',l:'Cerâmica / porcelanato'},argamassa:{u:'sacos',l:'Argamassa colante 20 kg'},reajunte:{u:'kg',l:'Rejunte'}};
+
+function fmt(n){return (Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtMoney(n){return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+
+let lastRaw={};
+let lastLab={enabled:false,total:0,dias:0,rows:[],costDay:0,method:'diaria'};
+
+function recalc(){
+  const p=readState();
+  const out=calcularMateriais(p);
+  lastRaw=out.resumo;
+  const brickKey=p.brick;
+  const bl=BRICK_LABELS[brickKey];
+  MAT.tijolo.l=bl.label;
+  const hintL=(parseFloat($('brickL').value)||19)/100, hintH=(parseFloat($('brickH').value)||19)/100, hintJ=(parseFloat($('brickJ').value)||1)/100;
+  const hintUn=Math.round(1/((hintL+hintJ)*(hintH+hintJ)));
+  $('brickHint').textContent=`≈ ${hintUn} unidades por m² de parede`;
+  const r=out.resumo;
+
+  $('sParede').textContent=r.parede+' m²';
+  $('sPiso').textContent=r.piso+' m²';
+  $('sReboco').textContent=r.reboco+' m²';
+
+  const rows=[
+    ['tijolo',out.qty.tijolo],
+    ['cimento',out.qty.cimento],
+    ['cal',out.qty.cal],
+    ['areia',out.qty.areia],
+    ['brita',out.qty.brita],
+    ['ceramica',out.qty.ceramica],
+    ['argamassa',out.qty.argamassa],
+    ['reajunte',out.qty.reajunte]
+  ];
+  const body=$('resBody');
+  body.innerHTML='';
+  let grand=0;
+  rows.forEach(([k,q])=>{
+    const sub=q*(prices[k]||0);
+    grand+=sub;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${MAT[k].l}</td><td class="num">${fmt(q)}</td><td>${MAT[k].u}</td><td class="price"><input type="number" class="priceIn" data-key="${k}" value="${prices[k].toFixed(2)}" step="0.50" min="0"></td><td class="num subVal">${fmtMoney(sub)}</td>`;
+    body.appendChild(tr);
+  });
+  const tr=document.createElement('tr');
+  tr.className='total-row';
+  tr.innerHTML=`<td colspan="4">TOTAL MATERIAIS (c/ ${p.waste}% de margem)</td><td class="num">${fmtMoney(grand)}</td>`;
+  body.appendChild(tr);
+
+  const lab=calcularMaoDeObra(p,r);
+  $('sDias').textContent=lab.enabled?lab.dias+' dias':'–';
+  $('sMao').textContent=lab.enabled?fmtMoney(lab.total):'–';
+  $('sTotal').textContent=fmtMoney(grand+lab.total);
+  lastLab=lab;
+  const lbody=$('laborBody');
+  if(lab.enabled){
+    const rowsHtml=lab.rows.map(x=>`<tr><td>${x.nome}</td><td class="num">${fmt(x.qtd)} ${x.uni}</td><td class="num">${x.dias===null?'–':fmt(x.dias)}</td><td class="num">${fmtMoney(x.valor)}</td></tr>`).join('');
+    const tip=lab.method==='diaria'?`${lab.dias} dias × R$ ${fmt(lab.costDay)}/dia`:'empreitada por m²';
+    lbody.innerHTML=rowsHtml+`<tr class="total-row"><td colspan="3">TOTAL MÃO DE OBRA (${tip})</td><td class="num">${fmtMoney(lab.total)}</td></tr>`;
+  }else{
+    lbody.innerHTML='<tr><td colspan="4" class="placeholder">Mão de obra desativada</td></tr>';
+  }
+
+  const rb=$('resRooms');
+  rb.innerHTML=r.perRoom.map(x=>`<tr><td>${x.nome}</td><td class="num">${x.net}</td><td class="num">${x.gross}</td></tr>`).join('')||'';
+  $('baldPerm').value=r.perimetro;
+  document.querySelectorAll('#resBody input').forEach(i=>i.addEventListener('input',recalc));
+}
+
+function renderPresets(){
+  const pre=[['Sala',4,3,2.6,1,1],['Banheiro',2.2,1.8,2.6,1,0]];
+  pre.forEach(x=>{const c=roomCard(...x);$('rooms').appendChild(c);});
+}
+
+function applyBrickPreset(){
+  const k=$('optBrick').value;
+  const pr=BRICK_PRESETS[k];
+  $('brickL').value=pr.L; $('brickH').value=pr.H; $('brickW').value=pr.W;
+}
+$('optBrick').addEventListener('change',()=>{applyBrickPreset();recalc();});
+$('addRoom').addEventListener('click',()=>$('rooms').appendChild(roomCard('Cômodo',3.5,3,2.6,1,1)));
+$('optFundacao').addEventListener('change',()=>{$('baldrameBox').style.display=$('optFundacao').checked?'':'none';recalc();});
+const INPUT_IDS=['optWaste','brickL','brickH','brickW','brickJ','portaW','portaH','janW','janH','rebEsp','chapEsp','baldBase','baldAlt','contraEsp','pisoL','pisoJ','pisoT','diarPed','diarServ','nServ','prodAlv','prodReb','prodChap','prodPiso','prodContra','prodBald','extraDias','pxAlv','pxReb','pxChap','pxPiso','pxContra','pxBald'];
+INPUT_IDS.forEach(id=>$(id).addEventListener('input',recalc));
+['optReboco','optChapisco','optFundacao','optContrapiso'].forEach(id=>$(id).addEventListener('change',recalc));
+function toggleLabor(){
+  $('laborBox').style.display=$('optLabor').checked?'':'none';
+  const diaria=$('metDiaria').checked;
+  $('prodBox').style.display=diaria?'':'none';
+  $('m2Box').style.display=diaria?'none':'';
+  recalc();
+}
+$('optLabor').addEventListener('change',toggleLabor);
+$('metDiaria').addEventListener('change',toggleLabor);
+$('metM2').addEventListener('change',toggleLabor);
+$('btnCopy').addEventListener('click',()=>{
+  const r=lastRaw;
+  const lines=['📋 RESUMO DE MATERIAIS',`Área de parede: ${r.parede} m²`,`Área de piso: ${r.piso} m²`,`Área rebocada: ${r.reboco} m²`,``];
+  document.querySelectorAll('#resBody tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td');
+    if(tds.length===5)lines.push(`${tds[0].textContent}: ${tds[1].textContent} ${tds[2].textContent}`);
+    if(tds.length===4)lines.push(`${tds[0].textContent}: ${tds[1].textContent}`);
+  });
+  if(lastLab.enabled){
+    lines.push(``);
+    lines.push(`👷 MÃO DE OBRA (${lastLab.method==='diaria'?`diária: ${lastLab.dias} dias × R$ ${fmt(lastLab.costDay)}/dia`:'empreitada por m²'})`);
+    lastLab.rows.forEach(x=>{lines.push(`   ${x.nome}: ${fmt(x.qtd)} ${x.uni} → ${fmtMoney(x.valor)}`);});
+    lines.push(`   TOTAL MÃO DE OBRA: ${fmtMoney(lastLab.total)}`);
+  }
+  const txt=lines.join('\n');
+  navigator.clipboard.writeText(txt).then(()=>{$('btnCopy').textContent='✓ Copiado!';setTimeout(()=>$('btnCopy').textContent='📋 Copiar resumo',1500);});
+});
+
+(async function initUser(){
+  const r = await fetch('/api/me');
+  const d = await r.json();
+  if (!d.user) { location.href = '/login'; return; }
+  document.getElementById('userName').textContent = '👷 ' + d.user.name;
+  if (d.user.role === 'admin') document.getElementById('adminLink').style.display = 'inline-block';
+})();
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/login';
+});
+
+renderPresets();
+recalc();
+</script>
+</body>
+</html>

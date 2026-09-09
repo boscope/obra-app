@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Calculadora de Obra</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f4f0ea;color:#2c3e50;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:#fff;border:1px solid #e3ddd3;border-radius:14px;padding:34px 30px;width:100%;max-width:380px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+  .logo{font-size:2.2rem;text-align:center}
+  h1{font-size:1.2rem;text-align:center;margin:8px 0 4px;color:#b85c0e}
+  p.sub{text-align:center;color:#7f8c8d;font-size:.85rem;margin-bottom:22px}
+  label{font-size:.82rem;color:#7f8c8d;display:block;margin:12px 0 4px}
+  input{width:100%;padding:10px 12px;border:1px solid #cfc7ba;border-radius:8px;font-size:1rem;background:#fff}
+  input:focus{outline:2px solid #e67e22}
+  button{width:100%;margin-top:20px;background:#e67e22;color:#fff;border:none;border-radius:8px;padding:12px;font-size:1rem;font-weight:700;cursor:pointer}
+  button:hover{background:#b85c0e}
+  .err{background:#fdecea;color:#c0392b;border:1px solid #f5c6c0;border-radius:8px;padding:9px 12px;font-size:.85rem;margin-top:14px;display:none}
+  .foot{text-align:center;color:#7f8c8d;font-size:.78rem;margin-top:18px}
+</style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">🧱</div>
+    <h1>Calculadora de Obra</h1>
+    <p class="sub">Materiais, custos e mão de obra</p>
+    <form id="loginForm">
+      <label for="username">Usuário</label>
+      <input type="text" id="username" autocomplete="username" required autofocus>
+      <label for="password">Senha</label>
+      <input type="password" id="password" autocomplete="current-password" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <div class="err" id="err"></div>
+    <div class="foot">Acesso por assinatura — administrado pelo usuário responsável.</div>
+  </div>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: document.getElementById('username').value,
+      password: document.getElementById('password').value
+    })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    location.href = data.user.role === 'admin' ? '/admin' : '/';
+  } else {
+    err.textContent = data.error || 'Erro ao entrar.';
+    err.style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revestimento de Cerâmica — Calculadora de Obra</title>
+<style>
+  :root{--accent:#e67e22;--accent-dark:#b85c0e;--bg:#f4f0ea;--card:#fff;--ink:#2c3e50;--muted:#7f8c8d;--line:#e3ddd3;--ok:#27ae60;--warn:#c0392b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+  header{background:linear-gradient(135deg,#1f2c3a,#2c3e50);color:#fff;padding:18px 26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:1.35rem;display:flex;align-items:center;gap:10px}
+  header p{color:#b8c4cf;font-size:.9rem;margin-top:4px}
+  #navLinks,.chip{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  #navLinks{margin-left:auto}
+  a.nav{color:#ffd9a8;text-decoration:none;font-size:.85rem;border:1px solid #5a6b7a;padding:5px 10px;border-radius:7px}
+  a.nav:hover{background:rgba(255,255,255,.08)}
+  #btnLogout{background:transparent;color:#e8c39e;border:1px solid #6b5b45;border-radius:7px;padding:5px 12px;font-size:.85rem;cursor:pointer}
+  #btnLogout:hover{background:#c0392b;color:#fff;border-color:#c0392b}
+  .chip span{color:#fff;font-size:.9rem}
+  main{max-width:1000px;margin:0 auto;padding:22px;display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:900px){main{grid-template-columns:1.05fr .95fr}}
+  section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  section h2{font-size:1.02rem;margin-bottom:14px;color:var(--accent-dark);text-transform:uppercase;letter-spacing:.4px}
+  label{font-size:.82rem;color:var(--muted);display:block;margin-bottom:4px}
+  input[type=number],select{width:100%;padding:8px 10px;border:1px solid #cfc7ba;border-radius:8px;font-size:.95rem;background:#fff}
+  input:focus{outline:2px solid var(--accent)}
+  .grid{display:grid;gap:10px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .check{display:flex;align-items:flex-start;gap:8px;font-size:.95rem;margin-bottom:10px}
+  .check input{width:18px;height:18px;margin-top:2px}
+  .subhead{font-size:.82rem;color:var(--accent-dark);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin:14px 0 8px}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:.9rem;cursor:pointer;font-weight:600}
+  .btn:hover{background:var(--accent-dark)}
+  .remember{font-size:.8rem;color:var(--muted);background:#f7f2ea;border-left:3px solid var(--accent);padding:8px 10px;border-radius:6px;margin-top:14px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .card{background:#fff8ef;border:1px solid #f0e0c8;border-radius:10px;padding:10px;text-align:center}
+  .card .v{font-size:1.15rem;font-weight:700;color:var(--accent-dark)}
+  .card .t{font-size:.75rem;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.3px}
+  td.price input{width:86px;padding:5px 7px}
+  td.num{text-align:right;white-space:nowrap}
+  .total-row{background:#fff8ef;font-weight:800;font-size:1.02rem}
+  .total-row td{color:var(--accent-dark)}
+  .divider{border-top:1px solid var(--line);margin:14px 0}
+  #costTip{font-size:.8rem;color:var(--muted);margin-bottom:10px}
+  #exportArea{margin-top:16px}
+  .green{color:var(--ok)}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:4px}
+  .table-wrap table{min-width:520px}
+  @media(max-width:760px){
+    input[type=number],select{font-size:16px;min-height:46px}
+    .btn{min-height:46px;font-size:1rem}
+    .g3,.g4{grid-template-columns:repeat(2,1fr)}
+    .check{font-size:1rem}
+    header{padding:14px 16px}
+    main{padding:14px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🧱 Revestimento de Cerâmica</h1>
+    <p>Apenas colocação de cerâmica/piso — materiais e quanto cobrar.</p>
+  </div>
+  <div>
+    <div id="navLinks">
+      <a class="nav" href="/">🏠 Casa completa</a>
+    </div>
+  </div>
+  <div class="chip">
+    <span id="userName"></span>
+    <a id="adminLink" class="nav" href="/admin" style="display:none">Painel admin</a>
+    <button id="btnLogout">Sair</button>
+  </div>
+</header>
+<main>
+  <div>
+    <section>
+      <h2>1. Áreas a revestir</h2>
+      <div class="grid g2">
+        <div><label>Área do PISO (m²)</label><input type="number" id="piso" value="2" step="0.5" min="0"></div>
+        <div><label>Área das PAREDES (m²)</label><input type="number" id="parede" value="8" step="0.5" min="0"></div>
+      </div>
+      <div class="subhead">Ou calcule pelas medidas do cômodo</div>
+      <div class="grid g3">
+        <div><label>Largura do cômodo (m)</label><input type="number" id="dimL" value="" step="0.05" min="0.5" placeholder="ex.: 2,5"></div>
+        <div><label>Comprimento do cômodo (m)</label><input type="number" id="dimW" value="" step="0.05" min="0.5" placeholder="ex.: 2,0"></div>
+        <div><label>Altura do revestimento (m)</label><input type="number" id="dimH" value="2.20" step="0.05" min="0.5" placeholder="ex.: 2,2"></div>
+      </div>
+      <div style="margin-top:10px"><button type="button" class="btn ghost" id="btnUseDims" style="background:#eee6da;color:var(--ink)">📐 Aplicar medidas → calcular áreas</button></div>
+      <div class="remember">Aplicar medidas preenche as áreas acima automaticamente (paredes = perímetro × altura). Deixe os campos de medida vazios se preferir digitar o m² direto.</div>
+      <div class="divider"></div>
+      <h2>2. Materiais da cerâmica</h2>
+      <div class="grid g4">
+        <div><label>Tamanho da peça (cm)</label><input type="number" id="tam" value="45" step="1" min="5"></div>
+        <div><label>Junta do rejunte (mm)</label><input type="number" id="junta" value="3" step="1" min="1"></div>
+        <div><label>Esp. da peça (mm)</label><input type="number" id="esp" value="9" step="1" min="3"></div>
+        <div><label>Margem / desperdício (%)</label><input type="number" id="waste" value="10" step="1" min="0" max="40"></div>
+      </div>
+      <div class="grid g2" style="margin-top:10px">
+        <div><label>Consumo argamassa colante (kg/m²)</label><input type="number" id="colM2" value="5" step="0.5" min="2"></div>
+      </div>
+      <div class="check" style="margin-top:12px"><input type="checkbox" id="contra" checked><div><strong>Incluir contrapiso</strong> (regularização do piso antes da cerâmica)<br><span class="green" style="font-size:.85rem">consome cimento, areia e brita</span></div></div>
+      <div class="grid g3" id="contraBox">
+        <div><label>Espessura do contra (cm)</label><input type="number" id="espC" value="5" step="1" min="2"></div>
+      </div>
+    </section>
+    <section style="margin-top:20px">
+      <h2>3. Mão de obra — quanto cobrar</h2>
+      <div style="margin-bottom:12px">
+        <div class="check" style="margin:6px 0"><input type="radio" name="met" id="metDiaria" checked><div><strong>Por diária</strong> — estimo os dias pelo rendimento</div></div>
+        <div class="check" style="margin:6px 0"><input type="radio" name="met" id="metM2"><div><strong>Por empreitada</strong> — preço fixo por m²</div></div>
+      </div>
+      <div class="grid g3">
+        <div><label>Diária do pedreiro (R$)</label><input type="number" id="ped" value="150" step="10" min="0"></div>
+        <div><label>Diária do servente (R$)</label><input type="number" id="serv" value="80" step="10" min="0"></div>
+        <div><label>Nº de serventes</label><input type="number" id="nServ" value="1" step="1" min="0" max="10"></div>
+      </div>
+      <div id="prodBox" class="grid g4" style="margin-top:12px">
+        <div><label>Piso (m²/dia)</label><input type="number" id="pdPiso" value="10" step="1" min="1"></div>
+        <div><label>Parede (m²/dia)</label><input type="number" id="pdParede" value="8" step="1" min="1"></div>
+        <div><label>Contrapiso (m²/dia)</label><input type="number" id="pdContra" value="20" step="1" min="1"></div>
+        <div><label>Dias extras</label><input type="number" id="extra" value="0" step="1" min="0"></div>
+      </div>
+      <div id="m2Box" class="grid g4" style="margin-top:12px;display:none">
+        <div><label>Piso (R$/m²)</label><input type="number" id="pxPiso" value="28" step="1" min="0"></div>
+        <div><label>Parede (R$/m²)</label><input type="number" id="pxParede" value="35" step="1" min="0"></div>
+        <div><label>Contrapiso (R$/m²)</label><input type="number" id="pxContra" value="12" step="1" min="0"></div>
+      </div>
+      <div class="remember">As diárias, o rendimento (m²/dia) e os preços por m² são editáveis — ajuste conforme o que o pedreiro da sua região cobra.</div>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>Resultado</h2>
+      <div class="cards">
+        <div class="card"><div class="v" id="sRevest">–</div><div class="t">Área revestida</div></div>
+        <div class="card"><div class="v" id="sDias">–</div><div class="t">Dias de serviço</div></div>
+        <div class="card"><div class="v" id="sMao">–</div><div class="t">Mão de obra</div></div>
+        <div class="card"><div class="v" id="sMat">–</div><div class="t">Materiais</div></div>
+        <div class="card"><div class="v" id="sTotal">R$ –</div><div class="t">Total geral</div></div>
+      </div>
+      <div id="costTip">Edite os preços abaixo para o custo real da sua região.</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Material</th><th>Qtd.</th><th>Unid.</th><th>Preço</th><th>Subtotal</th></tr></thead>
+        <tbody id="resBody"></tbody>
+      </table></div>
+      <div class="divider"></div>
+      <div class="subhead">Mão de obra — detalhamento</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Serviço</th><th>Qtd</th><th>Dias</th><th>Valor</th></tr></thead>
+        <tbody id="laborBody"></tbody>
+      </table></div>
+      <div id="exportArea"><button class="btn" id="btnCopy">📋 Copiar resumo</button></div>
+    </section>
+  </div>
+</main>
+
+<script>
+/* __PURE_CALC__ */
+function calcCeramica(p){
+  const piso=Math.max(0,+p.piso||0), parede=Math.max(0,+p.parede||0);
+  const revest=piso+parede;
+  const w=1+ (+p.waste||0)/100;
+  const L=Math.max(1,+p.tam||45), jj=((+p.junta||3))/10, tt=((+p.esp||9))/10;
+  const n=10000/(L*L);
+  const kgRejM2=n*4*L*jj*tt*1.45/1000;
+  const contra=(+p.contra)?piso*(+p.espC||5)/100:0;
+  const colKgM2=Math.max(1,+p.colM2||5);
+  const raw={
+    ceramica:revest,
+    colante:revest*colKgM2/20,
+    rejunte:revest*kgRejM2
+  };
+  if(contra>0){ raw.cimento=contra*5; raw.areia=contra*0.65; raw.brita=contra*0.9; }
+  const qty={};
+  for(const k in raw) qty[k]=Math.ceil(raw[k]*w*100)/100;
+  const cDay=(+p.ped||0)+(+p.nServ||0)*(+p.serv||0);
+  const dias=[]; const rows=[];
+  const tasks=[
+    {k:'piso',nome:'Assentar cerâmica no piso',qtd:piso,prod:+p.pdPiso||10,px:+p.pxPiso||0},
+    {k:'parede',nome:'Assentar cerâmica na parede',qtd:parede,prod:+p.pdParede||8,px:+p.pxParede||0}
+  ];
+  if(contra>0) tasks.push({k:'contra',nome:'Contrapiso',qtd:piso,prod:+p.pdContra||20,px:+p.pxContra||0});
+  let diasTotal=0, mao=0;
+  for(const t of tasks){
+    if(t.qtd<=0) continue;
+    if(p.met==='diaria'){
+      const d=t.qtd/Math.max(1,t.prod);
+      diasTotal+=d;
+      rows.push({nome:t.nome,qtd:t.qtd,uni:'m²',dias:+d.toFixed(1),valor:+(d*cDay).toFixed(2)});
+    }else{
+      const v=t.qtd*t.px;
+      mao+=v;
+      rows.push({nome:t.nome,qtd:t.qtd,uni:'m²',dias:null,valor:+v.toFixed(2)});
+    }
+  }
+  if(p.met==='diaria'){ diasTotal+=+p.extra||0; mao=diasTotal*cDay; }
+  return {qty,revest:+revest.toFixed(2),labor:{dias:+diasTotal.toFixed(1),valor:+mao.toFixed(2),rows,cDay,met:p.met,contra:contra>0}};
+}
+/* __END__ */
+</script>
+<script>
+const $=id=>document.getElementById(id);
+const DEFAULT_PRICES={ceramica:45, colante:28, rejunte:9, cimento:36, areia:160, brita:155};
+let prices={...DEFAULT_PRICES};
+const MAT={ceramica:{u:'m²',l:'Cerâmica / porcelanato'},colante:{u:'sacos 20kg',l:'Argamassa colante'},rejunte:{u:'kg',l:'Rejunte'},cimento:{u:'sacos',l:'Cimento 50 kg'},areia:{u:'m³',l:'Areia'},brita:{u:'m³',l:'Brita'}};
+let lastOut=null;
+
+function fmt(n){return (Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtMoney(n){return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+
+function readState(){
+  document.querySelectorAll('#resBody input').forEach(i=>{const k=i.dataset.key;if(k&&prices[k]!==undefined)prices[k]=parseFloat(i.value)||0;});
+  return {
+    piso:$('piso').value, parede:$('parede').value, tam:$('tam').value, junta:$('junta').value,
+    esp:$('esp').value, waste:$('waste').value, colM2:$('colM2').value,
+    contra:$('contra').checked, espC:$('espC').value,
+    met:$('metM2').checked?'m2':'diaria',
+    ped:$('ped').value, serv:$('serv').value, nServ:$('nServ').value,
+    pdPiso:$('pdPiso').value, pdParede:$('pdParede').value, pdContra:$('pdContra').value, extra:$('extra').value,
+    pxPiso:$('pxPiso').value, pxParede:$('pxParede').value, pxContra:$('pxContra').value
+  };
+}
+
+function recalc(){
+  const p=readState();
+  const o=calcCeramica(p);
+  lastOut=o;
+  const lab=o.labor;
+  $('sRevest').textContent=o.revest+' m²';
+  $('sDias').textContent=lab.dias+' dias';
+  $('sMao').textContent=fmtMoney(lab.valor);
+  const rows=Object.keys(o.qty);
+  const body=$('resBody');
+  body.innerHTML='';
+  let matTotal=0;
+  rows.forEach(k=>{
+    const q=o.qty[k]; if(q<=0) return;
+    const sub=q*(prices[k]||0);
+    matTotal+=sub;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${MAT[k].l}</td><td class="num">${fmt(q)}</td><td>${MAT[k].u}</td><td class="price"><input type="number" data-key="${k}" value="${prices[k].toFixed(2)}" step="0.50" min="0"></td><td class="num">${fmtMoney(sub)}</td>`;
+    body.appendChild(tr);
+  });
+  const mt=document.createElement('tr');
+  mt.className='total-row';
+  mt.innerHTML=`<td colspan="4">TOTAL MATERIAIS (c/ ${p.waste}% de margem)</td><td class="num">${fmtMoney(matTotal)}</td>`;
+  body.appendChild(mt);
+  $('sMat').textContent=fmtMoney(matTotal);
+  $('sTotal').textContent=fmtMoney(matTotal+lab.valor);
+  const lbody=$('laborBody');
+  const rowsHtml=lab.rows.map(x=>`<tr><td>${x.nome}</td><td class="num">${fmt(x.qtd)} ${x.uni}</td><td class="num">${x.dias===null?'–':fmt(x.dias)}</td><td class="num">${fmtMoney(x.valor)}</td></tr>`).join('');
+  const tip=lab.met==='diaria'?`${lab.dias} dias × R$ ${fmt(lab.cDay)}/dia`:'empreitada por m²';
+  lbody.innerHTML=rowsHtml+`<tr class="total-row"><td colspan="3">TOTAL MÃO DE OBRA (${tip})</td><td class="num">${fmtMoney(lab.valor)}</td></tr>`;
+  document.querySelectorAll('#resBody input').forEach(i=>i.addEventListener('input',recalc));
+}
+
+const INPUT_IDS=['piso','parede','tam','junta','esp','waste','colM2','espC','ped','serv','nServ','pdPiso','pdParede','pdContra','extra','pxPiso','pxParede','pxContra'];
+INPUT_IDS.forEach(id=>$(id).addEventListener('input',recalc));
+
+function toggleMet(){
+  const diaria=$('metDiaria').checked;
+  $('prodBox').style.display=diaria?'':'none';
+  $('m2Box').style.display=diaria?'none':'';
+  recalc();
+}
+$('metDiaria').addEventListener('change',toggleMet);
+$('metM2').addEventListener('change',toggleMet);
+$('contra').addEventListener('change',recalc);
+
+$('btnUseDims').addEventListener('click',()=>{
+  const L=parseFloat($('dimL').value), W=parseFloat($('dimW').value), H=parseFloat($('dimH').value);
+  if(!L||!W){ alert('Informe largura e comprimento do cômodo para calcular as áreas.'); return; }
+  const piso=+(L*W).toFixed(2);
+  const parede=H?+((2*(L+W))*H).toFixed(2):0;
+  $('piso').value=piso;
+  $('parede').value=parede;
+  recalc();
+});
+
+$('btnCopy').addEventListener('click',()=>{
+  if(!lastOut) return;
+  const lines=['🧱 REVESTIMENTO DE CERÂMICA',`Área revestida: ${lastOut.revest} m²`,``];
+  document.querySelectorAll('#resBody tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td');
+    if(tds.length===5)lines.push(`${tds[0].textContent}: ${tds[1].textContent} ${tds[2].textContent}`);
+    if(tds.length===4)lines.push(`${tds[0].textContent}: ${tds[1].textContent}`);
+  });
+  lines.push(``);
+  if(lastOut.labor.rows.length){ lines.push(`👷 MÃO DE OBRA (${lastOut.labor.met==='diaria'?`diária: ${lastOut.labor.dias} dias × R$ ${fmt(lastOut.labor.cDay)}/dia`:'empreitada por m²'})`); lastOut.labor.rows.forEach(x=>lines.push(`   ${x.nome}: ${fmt(x.qtd)} ${x.uni} → ${fmtMoney(x.valor)}`)); }
+  lines.push(`   TOTAL MÃO DE OBRA: ${fmtMoney(lastOut.labor.valor)}`);
+  const txt=lines.join('\n');
+  navigator.clipboard.writeText(txt).then(()=>{$('btnCopy').textContent='✓ Copiado!';setTimeout(()=>$('btnCopy').textContent='📋 Copiar resumo',1500);});
+});
+
+(async function initUser(){
+  const d=await (await fetch('/api/me')).json();
+  if(!d.user){ location.href='/login'; return; }
+  document.getElementById('userName').textContent='👷 '+d.user.name;
+  if(d.user.role==='admin') document.getElementById('adminLink').style.display='inline-block';
+})();
+document.getElementById('btnLogout').addEventListener('click',async()=>{await fetch('/api/logout',{method:'POST'});location.href='/login';});
+
+recalc();
+</script>
+</body>
+</html>
