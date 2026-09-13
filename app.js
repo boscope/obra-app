@@ -2,6 +2,9 @@ const path = require('path');
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
+
+try { process.loadEnvFile(path.join(__dirname, '.env')); } catch (e) {}
+
 const db = require('./db');
 
 const app = express();
@@ -46,6 +49,11 @@ app.get('/login', asyncH(async (req, res) => {
   res.sendFile(servePublic('login.html'));
 }));
 
+app.get('/registrar', asyncH(async (req, res) => {
+  if (await authed(req)) return res.redirect('/');
+  res.sendFile(servePublic('register.html'));
+}));
+
 app.get('/', asyncH(async (req, res) => {
   const u = await authed(req);
   if (!u) return res.redirect('/login');
@@ -79,6 +87,18 @@ app.post('/api/login', asyncH(async (req, res) => {
   req.session.userId = u.id;
   db.touchLogin(u.id);
   res.json({ ok: true, user: db.rowToUser(u) });
+}));
+
+app.post('/api/registrar', asyncH(async (req, res) => {
+  const { name, username, password } = req.body || {};
+  if (!name || !username || !password) return res.status(400).json({ error: 'Nome, usuário e senha são obrigatórios.' });
+  if (String(password).length < 4) return res.status(400).json({ error: 'A senha deve ter pelo menos 4 caracteres.' });
+  if (String(username).length < 3) return res.status(400).json({ error: 'O usuário deve ter pelo menos 3 caracteres.' });
+  if (/[^a-z0-9_.-]/i.test(String(username))) return res.status(400).json({ error: 'Use apenas letras, números, ponto, traço ou sublinhado no usuário.' });
+  if (await db.findUserByUsername(String(username).trim())) return res.status(409).json({ error: 'Já existe um usuário com esse nome de acesso.' });
+  const user = await db.createUser({ name: String(name).trim(), username: String(username).trim(), password: String(password), role: 'cliente' });
+  req.session.userId = user.id;
+  res.json({ ok: true, role: user.role });
 }));
 
 app.post('/api/logout', (req, res) => {

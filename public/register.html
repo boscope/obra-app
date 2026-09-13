@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar conta — Calculadora de Obra</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f4f0ea;color:#2c3e50;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:#fff;border:1px solid #e3ddd3;border-radius:14px;padding:34px 30px;width:100%;max-width:380px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+  .logo{font-size:2.2rem;text-align:center}
+  h1{font-size:1.2rem;text-align:center;margin:8px 0 4px;color:#b85c0e}
+  p.sub{text-align:center;color:#7f8c8d;font-size:.85rem;margin-bottom:22px}
+  label{font-size:.82rem;color:#7f8c8d;display:block;margin:12px 0 4px}
+  input{width:100%;padding:10px 12px;border:1px solid #cfc7ba;border-radius:8px;font-size:16px;background:#fff}
+  input:focus{outline:2px solid #e67e22}
+  button{width:100%;margin-top:20px;background:#e67e22;color:#fff;border:none;border-radius:8px;padding:12px;font-size:1rem;font-weight:700;cursor:pointer}
+  button:hover{background:#b85c0e}
+  .err{background:#fdecea;color:#c0392b;border:1px solid #f5c6c0;border-radius:8px;padding:9px 12px;font-size:.85rem;margin-top:14px;display:none}
+  .foot{text-align:center;color:#7f8c8d;font-size:.82rem;margin-top:18px}
+  .foot a{color:#e67e22;text-decoration:none;font-weight:600}
+  .hint{color:#95a5a6;font-size:.75rem;margin-top:4px}
+</style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">🧱</div>
+    <h1>Criar minha conta</h1>
+    <p class="sub">Calculadora de materiais e mão de obra</p>
+    <form id="regForm">
+      <label for="name">Seu nome</label>
+      <input type="text" id="name" autocomplete="name" required>
+      <label for="username">Usuário (login)</label>
+      <input type="text" id="username" autocomplete="username" required>
+      <div class="hint">Escolha fácil de lembrar, sem espaços (ex.: joaosilva)</div>
+      <label for="password">Senha</label>
+      <input type="password" id="password" autocomplete="new-password" required>
+      <div class="hint">Mínimo de 4 caracteres</div>
+      <label for="confirm">Confirmar senha</label>
+      <input type="password" id="confirm" autocomplete="new-password" required>
+      <button type="submit">Criar conta e entrar</button>
+    </form>
+    <div class="err" id="err"></div>
+    <div class="foot">Já tem conta? <a href="/login">Entrar</a></div>
+  </div>
+<script>
+document.getElementById('regForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  const name = document.getElementById('name').value;
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('confirm').value;
+  if (password !== confirm) {
+    err.textContent = 'As senhas não conferem.';
+    err.style.display = 'block';
+    return;
+  }
+  const res = await fetch('/api/registrar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, username, password })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    location.href = data.role === 'admin' ? '/admin' : '/';
+  } else {
+    err.textContent = data.error || 'Erro ao criar conta.';
+    err.style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
