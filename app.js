@@ -93,10 +93,11 @@ app.post('/api/registrar', asyncH(async (req, res) => {
   const { name, username, password } = req.body || {};
   if (!name || !username || !password) return res.status(400).json({ error: 'Nome, usuário e senha são obrigatórios.' });
   if (String(password).length < 4) return res.status(400).json({ error: 'A senha deve ter pelo menos 4 caracteres.' });
-  if (String(username).length < 3) return res.status(400).json({ error: 'O usuário deve ter pelo menos 3 caracteres.' });
-  if (/[^a-z0-9_.-]/i.test(String(username))) return res.status(400).json({ error: 'Use apenas letras, números, ponto, traço ou sublinhado no usuário.' });
-  if (await db.findUserByUsername(String(username).trim())) return res.status(409).json({ error: 'Já existe um usuário com esse nome de acesso.' });
-  const user = await db.createUser({ name: String(name).trim(), username: String(username).trim(), password: String(password), role: 'cliente' });
+  const uname = String(username).trim();
+  if (uname.length < 3) return res.status(400).json({ error: 'O usuário deve ter pelo menos 3 caracteres.' });
+  if (/[\/\\<>]/.test(uname)) return res.status(400).json({ error: 'O usuário não pode conter os caracteres / \\ < >.' });
+  if (await db.findUserByUsername(uname)) return res.status(409).json({ error: 'Já existe um usuário com esse nome de acesso.' });
+  const user = await db.createUser({ name: String(name).trim(), username: uname, password: String(password), role: 'cliente' });
   req.session.userId = user.id;
   res.json({ ok: true, role: user.role });
 }));
