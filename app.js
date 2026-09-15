@@ -14,7 +14,7 @@ app.set('trust proxy', 1);
 
 const SESSION_SECRET = process.env.SESSION_SECRET || 'troque-esta-chave-antes-de-publicar';
 
-app.use(express.json());
+app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieSession({
   name: 'sid',
@@ -110,6 +110,32 @@ app.post('/api/logout', (req, res) => {
 app.get('/api/me', asyncH(async (req, res) => {
   const u = await authed(req);
   res.json({ user: u ? { id: u.id, name: u.name, username: u.username, role: u.role, status: u.status } : null });
+}));
+
+/* ---------- dados salvos (por usuário) ---------- */
+
+const DADOS_CHAVES = new Set(['calc', 'ceramica']);
+
+app.get('/api/me/dados/:chave', asyncH(async (req, res) => {
+  const u = await authed(req);
+  if (!u) return res.status(401).json({ error: 'Não autenticado.' });
+  const chave = String(req.params.chave);
+  if (!DADOS_CHAVES.has(chave)) return res.status(400).json({ error: 'Chave inválida.' });
+  const dados = await db.loadUserData(u.id, chave);
+  res.json({ dados });
+}));
+
+app.put('/api/me/dados/:chave', asyncH(async (req, res) => {
+  const u = await authed(req);
+  if (!u) return res.status(401).json({ error: 'Não autenticado.' });
+  const chave = String(req.params.chave);
+  if (!DADOS_CHAVES.has(chave)) return res.status(400).json({ error: 'Chave inválida.' });
+  const dados = (req.body || {}).dados;
+  if (dados === undefined || dados === null) return res.status(400).json({ error: 'Campo dados é obrigatório.' });
+  const json = JSON.stringify(dados);
+  if (json.length > 200000) return res.status(400).json({ error: 'Dados muito grandes.' });
+  await db.saveUserData(u.id, chave, dados);
+  res.json({ ok: true });
 }));
 
 /* ---------- API de admin ---------- */

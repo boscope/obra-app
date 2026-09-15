@@ -23,6 +23,15 @@ function ensureReady() {
         last_login    TEXT
       );
       `);
+      await db.execute(`
+      CREATE TABLE IF NOT EXISTS user_data (
+        user_id    INTEGER NOT NULL,
+        chave      TEXT NOT NULL,
+        dados      TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+        PRIMARY KEY (user_id, chave)
+      );
+      `);
       await seedAdmin();
     })().catch((e) => { readyPromise = null; throw e; });
   }
@@ -94,6 +103,25 @@ async function touchLogin(id) {
   await db.execute({ sql: "UPDATE users SET last_login = datetime('now','localtime') WHERE id = ?", args: [id] });
 }
 
+async function loadUserData(userId, chave) {
+  await ensureReady();
+  const r = await db.execute({ sql: 'SELECT dados FROM user_data WHERE user_id = ? AND chave = ?', args: [userId, chave] });
+  if (!r.rows[0]) return null;
+  try { return JSON.parse(r.rows[0].dados); } catch (e) { return null; }
+}
+
+async function saveUserData(userId, chave, dados) {
+  await ensureReady();
+  const json = JSON.stringify(dados);
+  await db.execute({
+    sql: `INSERT INTO user_data (user_id, chave, dados, updated_at)
+          VALUES (?, ?, ?, datetime('now','localtime'))
+          ON CONFLICT(user_id, chave)
+          DO UPDATE SET dados = excluded.dados, updated_at = excluded.updated_at`,
+    args: [userId, chave, json]
+  });
+}
+
 async function countAdminsActive() {
   await ensureReady();
   const r = await db.execute("SELECT COUNT(*) AS n FROM users WHERE role = 'admin' AND status = 'ativo'");
@@ -133,6 +161,8 @@ module.exports = {
   getPasswordHash,
   updatePassword,
   touchLogin,
+  loadUserData,
+  saveUserData,
   countAdminsActive,
   seedAdmin,
   rowToUser

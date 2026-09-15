@@ -467,6 +467,7 @@ function recalc(){
   rb.innerHTML=r.perRoom.map(x=>`<tr><td>${x.nome}</td><td class="num">${x.net}</td><td class="num">${x.gross}</td></tr>`).join('')||'';
   $('baldPerm').value=r.perimetro;
   document.querySelectorAll('#resBody input').forEach(i=>i.addEventListener('input',recalc));
+  scheduleSave();
 }
 
 function renderPresets(){
@@ -519,14 +520,76 @@ $('btnCopy').addEventListener('click',()=>{
   if (!d.user) { location.href = '/login'; return; }
   document.getElementById('userName').textContent = '👷 ' + d.user.name;
   if (d.user.role === 'admin') document.getElementById('adminLink').style.display = 'inline-block';
+  renderPresets();
+  recalc();
+  await loadDados();
 })();
 document.getElementById('btnLogout').addEventListener('click', async () => {
   await fetch('/api/logout', { method: 'POST' });
   location.href = '/login';
 });
 
-renderPresets();
-recalc();
+let __saveTimer = null;
+function scheduleSave() {
+  clearTimeout(__saveTimer);
+  __saveTimer = setTimeout(() => {
+    try {
+      const p = readState();
+      p.prices = { ...prices };
+      fetch('/api/me/dados/calc', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dados: p })
+      }).catch(() => {});
+    } catch (e) {}
+  }, 600);
+}
+
+async function loadDados() {
+  try {
+    const d = await (await fetch('/api/me/dados/calc')).json();
+    if (d && d.dados) applyState(d.dados);
+  } catch (e) {}
+}
+
+function applyState(p) {
+  if (!p) return;
+  const roomsBox = $('rooms');
+  roomsBox.innerHTML = '';
+  (p.rooms || []).forEach(r => {
+    roomsBox.appendChild(roomCard(r.nome || 'Cômodo', +r.L || 3.5, +r.W || 3, +r.H || 2.6, +(r.portas) || 0, +(r.janelas) || 0));
+  });
+  const setV = (id, v) => { const el = $(id); if (el) el.value = v; };
+  setV('optBrick', p.brick || 'tijolo_furado');
+  setV('brickL', p.brickL ?? 19); setV('brickH', p.brickH ?? 19); setV('brickW', p.brickW ?? 9); setV('brickJ', p.brickJ ?? 1);
+  setV('portaW', p.portaW ?? 0.8); setV('portaH', p.portaH ?? 2.1); setV('janW', p.janW ?? 1.2); setV('janH', p.janH ?? 1.2);
+  setV('rebEsp', p.rebEsp ?? 2); setV('chapEsp', p.chapEsp ?? 0.5); setV('optWaste', p.waste ?? 10);
+  $('optReboco').checked = !!p.reboco;
+  $('optChapisco').checked = !!p.chapisco;
+  $('optFundacao').checked = !!p.fundacao;
+  $('optContrapiso').checked = !!p.contrapiso;
+  $('baldrameBox').style.display = p.fundacao ? '' : 'none';
+  setV('baldBase', p.baldBase ?? 0.2); setV('baldAlt', p.baldAlt ?? 0.3); setV('contraEsp', p.contraEsp ?? 5);
+  setV('pisoL', p.pisoL ?? 45); setV('pisoJ', p.pisoJ ?? 3); setV('pisoT', p.pisoT ?? 9);
+  const lab = p.labor || {};
+  $('optLabor').checked = lab.enabled !== false;
+  $('laborBox').style.display = $('optLabor').checked ? '' : 'none';
+  const diaria = lab.method !== 'm2';
+  $('metDiaria').checked = diaria;
+  $('metM2').checked = !diaria;
+  $('prodBox').style.display = diaria ? '' : 'none';
+  $('m2Box').style.display = diaria ? 'none' : '';
+  setV('diarPed', lab.pedreiro ?? 150); setV('diarServ', lab.servente ?? 80); setV('nServ', lab.serventes ?? 1);
+  const prod = lab.prod || {};
+  setV('prodAlv', prod.alv ?? 12); setV('prodReb', prod.reb ?? 18); setV('prodChap', prod.chap ?? 35);
+  setV('prodPiso', prod.piso ?? 10); setV('prodContra', prod.contra ?? 20); setV('prodBald', prod.bald ?? 15);
+  setV('extraDias', lab.extraDias ?? 0);
+  const px = lab.prices || {};
+  setV('pxAlv', px.alv ?? 35); setV('pxReb', px.reb ?? 20); setV('pxChap', px.chap ?? 6);
+  setV('pxPiso', px.piso ?? 28); setV('pxContra', px.contra ?? 12); setV('pxBald', px.bald ?? 25);
+  if (p.prices) prices = { ...DEFAULT_PRICES, ...p.prices };
+  recalc();
+}
 </script>
 </body>
 </html>

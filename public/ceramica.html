@@ -260,6 +260,7 @@ function recalc(){
   const tip=lab.met==='diaria'?`${lab.dias} dias × R$ ${fmt(lab.cDay)}/dia`:'empreitada por m²';
   lbody.innerHTML=rowsHtml+`<tr class="total-row"><td colspan="3">TOTAL MÃO DE OBRA (${tip})</td><td class="num">${fmtMoney(lab.valor)}</td></tr>`;
   document.querySelectorAll('#resBody input').forEach(i=>i.addEventListener('input',recalc));
+  scheduleSave();
 }
 
 const INPUT_IDS=['piso','parede','tam','junta','esp','waste','colM2','espC','ped','serv','nServ','pdPiso','pdParede','pdContra','extra','pxPiso','pxParede','pxContra'];
@@ -305,8 +306,54 @@ $('btnCopy').addEventListener('click',()=>{
   if(!d.user){ location.href='/login'; return; }
   document.getElementById('userName').textContent='👷 '+d.user.name;
   if(d.user.role==='admin') document.getElementById('adminLink').style.display='inline-block';
+  recalc();
+  await loadDados();
 })();
 document.getElementById('btnLogout').addEventListener('click',async()=>{await fetch('/api/logout',{method:'POST'});location.href='/login';});
+
+let __saveTimer = null;
+function scheduleSave() {
+  clearTimeout(__saveTimer);
+  __saveTimer = setTimeout(() => {
+    try {
+      const p = readState();
+      p.prices = { ...prices };
+      fetch('/api/me/dados/ceramica', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dados: p })
+      }).catch(() => {});
+    } catch (e) {}
+  }, 600);
+}
+
+async function loadDados() {
+  try {
+    const d = await (await fetch('/api/me/dados/ceramica')).json();
+    if (d && d.dados) applyDados(d.dados);
+  } catch (e) {}
+}
+
+function applyDados(p) {
+  if (!p) return;
+  const setV = (id, v) => { const el = $(id); if (el) el.value = v; };
+  setV('piso', p.piso !== undefined ? p.piso : 2);
+  setV('parede', p.parede !== undefined ? p.parede : 8);
+  setV('tam', p.tam ?? 45); setV('junta', p.junta ?? 3); setV('esp', p.esp ?? 9); setV('waste', p.waste ?? 10);
+  setV('colM2', p.colM2 ?? 5);
+  $('contra').checked = p.contra !== false;
+  setV('espC', p.espC ?? 5);
+  const diaria = p.met !== 'm2';
+  $('metDiaria').checked = diaria;
+  $('metM2').checked = !diaria;
+  $('prodBox').style.display = diaria ? '' : 'none';
+  $('m2Box').style.display = diaria ? 'none' : '';
+  setV('ped', p.ped ?? 150); setV('serv', p.serv ?? 80); setV('nServ', p.nServ ?? 1);
+  setV('pdPiso', p.pdPiso ?? 10); setV('pdParede', p.pdParede ?? 8); setV('pdContra', p.pdContra ?? 20); setV('extra', p.extra ?? 0);
+  setV('pxPiso', p.pxPiso ?? 28); setV('pxParede', p.pxParede ?? 35); setV('pxContra', p.pxContra ?? 12);
+  if (p.prices) prices = { ...DEFAULT_PRICES, ...p.prices };
+  recalc();
+}
 
 recalc();
 </script>
